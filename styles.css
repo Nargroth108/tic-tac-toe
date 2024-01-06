@@ -1,3 +1,54 @@
-div {
-	background-color: red;
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body {
+	display: flex;
+	justify-content: center;
+	padding-top: 30px;
+}
+
+.container {
+	display: grid;
+	grid-template: 1fr 300px repeat(3, 1fr) / repeat(2, 150px);
+}
+
+.table-container {
+	border: #000000 solid 2px;
+	grid-column: 1 / 3;
+	display: grid;
+	grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+}
+
+.win-message {
+	grid-column: 1 / 3;
+	font-weight: 600;
+}
+
+.cell {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	aspect-ratio: 1/1;
+	border: black dashed 1px;
+	font-size: 2rem;
+	font-weight: bold;
+}
+
+.scores,
+.win-message,
+.names {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 12px;
+}
+
+button {
+	background-color: blue;
+	color: white;
+	border: cyan solid 1.5px;
+	margin: 5px;
 }
