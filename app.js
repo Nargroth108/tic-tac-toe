@@ -12,13 +12,8 @@ function GameBoard() {
 
 	const getBoard = () => board;
 
-	const printBoard = () => {
-		console.table(board);
-	};
-
 	return {
 		getBoard,
-		printBoard,
 	};
 }
 
@@ -37,68 +32,94 @@ const game = (function Game() {
 	let board = GameBoard().getBoard();
 	let turn = 0;
 
-	const winMessageDiv = document.querySelector('.win-message');
-	const table = document.querySelector('.table-container');
-	const renderCells = () => {
-		const cellsArray = board.flat();
-		cellsArray.forEach((item) => {
-			let div = document.createElement('div');
-			div.classList.add('cell');
-			div.textContent = item;
-			table.appendChild(div);
-		});
-	};
-	const removeCells = () => {
-		const cells = document.querySelectorAll('.cell');
-		cells.forEach((item) => {
-			table.removeChild(item);
-		});
-	};
-
-	const players = [
-		createPlayer('Player 1', 'X', 1),
-		createPlayer('Player 2', 'O', 4),
+	let players = [
+		createPlayer(prompt('Please enter a name', 'Player 1'), 'X', 1),
+		createPlayer(prompt('Please enter a name', 'Player 2'), 'O', 4),
 	];
 	let activePlayer = players[0];
 	const getActivePlayer = () => activePlayer;
 	const switchPlayerTurn = () => {
 		activePlayer = activePlayer === players[0] ? players[1] : players[0];
 	};
+	const namingDivs = function () {
+		const nameDivs = document.querySelectorAll('.names');
+		nameDivs.forEach((div, index) => {
+			div.textContent = players[index].name;
+		});
+	};
+	namingDivs();
 
-	const colSum = (board) => {
-		const colSumArr = [];
-		board.forEach((sub) => {
-			sub.forEach((num, index) => {
-				if (colSumArr[index]) {
-					colSumArr[index] += num;
-				} else {
-					colSumArr[index] = num;
+	const scoreDivs = document.querySelectorAll('.scores');
+	const addScoreToDivs = () => {
+		scoreDivs.forEach((div, index) => {
+			div.textContent = players[index].score;
+		});
+	};
+	addScoreToDivs();
+
+	const winMessageDiv = document.querySelector('.win-message');
+	const table = document.querySelector('.table-container');
+	const renderCells = () => {
+		const flatBoard = board.flat();
+		flatBoard.forEach((item) => {
+			let button = document.createElement('button');
+			button.classList.add('cell');
+			button.textContent = item;
+			table.appendChild(button);
+		});
+		const cells = document.querySelectorAll('.cell');
+		let cellNumber = 0;
+		for (xRow = 0; xRow < 3; xRow++) {
+			for (yCol = 0; yCol < 3; yCol++) {
+				cells[cellNumber].setAttribute('data-x', xRow);
+				cells[cellNumber].setAttribute('data-y', yCol);
+				cellNumber++;
+			}
+		}
+		cells.forEach((cell) => {
+			cell.addEventListener('click', () => {
+				const xValue = cell.dataset.x;
+				const yValue = cell.dataset.y;
+				if (board[xValue][yValue] === '') {
+					newRound(xValue, yValue);
 				}
 			});
 		});
-		return colSumArr;
 	};
-	const rowSum = (board) => {
-		const rowSumArr = [];
-		let sum = 0;
-		board.forEach((row) => {
-			row.forEach((num) => {
-				sum += num;
-			});
-			rowSumArr.push(sum);
-			sum = 0;
+	renderCells();
+	const removeCells = () => {
+		const cells = document.querySelectorAll('.cell');
+		cells.forEach((cell) => {
+			table.removeChild(cell);
 		});
-		return rowSumArr;
 	};
-	const sumX = (board) => {
-		return board[0][0] + board[1][1] + board[2][2];
+	const restartBtn = document.querySelector('.restart');
+	restartBtn.addEventListener('click', () => restartTurn());
+	const restartTurn = () => {
+		turn = 0;
+		activePlayer = players[0];
+		board = GameBoard().getBoard();
+		removeCells();
+		renderCells();
 	};
-	const sumY = (board) => {
-		return board[0][2] + board[1][1] + board[2][0];
-	};
+	const resetBtn = document.querySelector('.reset');
+	resetBtn.addEventListener('click', () => {
+		board = GameBoard().getBoard();
+		turn = 0;
+		removeCells();
+		renderCells();
+		players = [
+			createPlayer(prompt('Please enter a name', 'Player 1'), 'X', 1),
+			createPlayer(prompt('Please enter a name', 'Player 2'), 'O', 4),
+		];
+		activePlayer = players[0];
+		winMessageDiv.textContent = '';
+		namingDivs();
+		addScoreToDivs();
+	});
 
-	//probably eventlistener on each cells
 	newRound = (n1, n2) => {
+		winMessageDiv.textContent = '';
 		turn++;
 		removeCells();
 		const activePlayersMarker = getActivePlayer().marker;
@@ -107,11 +128,36 @@ const game = (function Game() {
 		board[n1][n2] = activePlayersMarker;
 		renderCells();
 
-		const reset = () => {
-			turn = 0;
-			activePlayer = players[0];
-			board = GameBoard().getBoard();
-			//reset textcontent
+		const colSum = (board) => {
+			const colSumArr = [];
+			board.forEach((sub) => {
+				sub.forEach((num, index) => {
+					if (colSumArr[index]) {
+						colSumArr[index] += num;
+					} else {
+						colSumArr[index] = num;
+					}
+				});
+			});
+			return colSumArr;
+		};
+		const rowSum = (board) => {
+			const rowSumArr = [];
+			let sum = '';
+			board.forEach((row) => {
+				row.forEach((num) => {
+					sum += num;
+				});
+				rowSumArr.push(sum);
+				sum = '';
+			});
+			return rowSumArr;
+		};
+		const sumX = (board) => {
+			return board[0][0] + board[1][1] + board[2][2];
+		};
+		const sumY = (board) => {
+			return board[0][2] + board[1][1] + board[2][0];
 		};
 
 		if (
@@ -121,22 +167,14 @@ const game = (function Game() {
 			sumY(board) === activePlayerWinValue
 		) {
 			activePlayer.score++;
+			addScoreToDivs();
 			winMessageDiv.textContent = `${activePlayer.name} is the winner!`;
-			reset();
+			restartTurn();
 		} else if (turn === 9) {
 			winMessageDiv.textContent = 'Tie!';
-			reset();
+			restartTurn();
 		} else {
 			switchPlayerTurn();
 		}
-		console.table(board);
 	};
-
-	newRound(0, 0);
-	newRound(0, 2);
-	newRound(1, 0);
-	newRound(2, 2);
-	newRound(1, 2);
-	newRound(1, 1);
-	newRound(0, 1);
 })();
